@@ -479,12 +479,12 @@ export default function App() {
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 mb-6 tracking-tight">스마트 시간표 알림이</h1>
           <p className="text-base sm:text-xl text-slate-500 mb-12 leading-relaxed">선생님은 시간표를 관리하고, 학생들은 대형 화면으로 수업 흐름을 확인합니다. 실시간 동기화와 음성 안내로 수업 효율을 높이세요.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md mx-auto">
-            <button onClick={handleLogin} className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-base lg:text-lg shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
-              <UserIcon className="w-5 h-5" /> 선생님으로 시작하기
+          <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-2xl mx-auto">
+            <button onClick={handleLogin} className="w-full sm:flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm sm:text-base lg:text-lg shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+              <UserIcon className="w-5 h-5 shrink-0" /> 선생님으로 시작하기
             </button>
-            <button onClick={() => setShowTeacherIdModal(true)} className="w-full sm:w-auto px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold text-base lg:text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
-              <Monitor className="w-5 h-5" /> 학생용 화면 보기
+            <button onClick={() => setShowTeacherIdModal(true)} className="w-full sm:flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm sm:text-base lg:text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+              <Monitor className="w-5 h-5 shrink-0" /> 학생용 화면 보기
             </button>
           </div>
         </motion.div>
