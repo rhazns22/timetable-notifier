@@ -95,6 +95,45 @@ const ACTIVITY_COLORS: Record<ActivityType, string> = {
 
 // --- Components ---
 
+function DebouncedInput({ 
+  value, 
+  onChange, 
+  className, 
+  placeholder 
+}: { 
+  value: string; 
+  onChange: (val: string) => void; 
+  className?: string;
+  placeholder?: string;
+}) {
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleBlur = () => {
+    if (localValue !== value) {
+      onChange(localValue);
+    }
+  };
+
+  return (
+    <input
+      className={className}
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      placeholder={placeholder}
+    />
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -397,6 +436,34 @@ export default function App() {
     await setDoc(doc(db, 'display_settings', user.uid), data, { merge: true });
   };
 
+  const extractTeacherId = (input: string) => {
+    try {
+      const url = new URL(input);
+      return url.searchParams.get('teacherId') || input;
+    } catch {
+      return input;
+    }
+  };
+
+  const handleTeacherIdSubmit = () => {
+    const input = inputTeacherId.trim();
+    if (!input) return;
+
+    try {
+      // If it's a full URL, just go there
+      if (input.startsWith('http')) {
+        window.location.href = input;
+        return;
+      }
+      
+      // Otherwise extract ID and set search param
+      const id = extractTeacherId(input);
+      window.location.search = `?teacherId=${id}`;
+    } catch {
+      window.location.search = `?teacherId=${input}`;
+    }
+  };
+
   // --- Render Helpers ---
   if (!isAuthReady) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-600"></div></div>;
 
@@ -435,16 +502,20 @@ export default function App() {
                 className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl"
               >
                 <h3 className="text-2xl font-black text-slate-900 mb-2">선생님 ID 입력</h3>
-                <p className="text-slate-500 mb-6">공유받은 선생님의 고유 ID를 입력해 주세요.</p>
+                <p className="text-slate-500 mb-6 text-sm">공유받은 선생님의 고유 ID 또는 <b>전체 링크</b>를 그대로 붙여넣으셔도 됩니다.</p>
                 <input 
                   autoFocus
                   className="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:outline-none font-bold text-lg mb-6"
-                  placeholder="ID를 입력하세요"
+                  placeholder="ID 또는 전체 링크를 입력하세요"
                   value={inputTeacherId}
-                  onChange={(e) => setInputTeacherId(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setInputTeacherId(val);
+                    // If a full URL is pasted, we can try to handle it immediately or wait for Enter
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && inputTeacherId) {
-                      window.location.search = `?teacherId=${inputTeacherId}`;
+                    if (e.key === 'Enter') {
+                      handleTeacherIdSubmit();
                     }
                   }}
                 />
@@ -456,11 +527,7 @@ export default function App() {
                     취소
                   </button>
                   <button 
-                    onClick={() => {
-                      if (inputTeacherId) {
-                        window.location.search = `?teacherId=${inputTeacherId}`;
-                      }
-                    }}
+                    onClick={handleTeacherIdSubmit}
                     className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
                   >
                     확인
@@ -587,10 +654,10 @@ export default function App() {
                             {(() => { const Icon = ACTIVITY_ICONS[item.activityType]; return <Icon className="w-6 h-6" />; })()}
                           </div>
                           <div className="flex-1">
-                            <input 
+                            <DebouncedInput 
                               className="w-full text-lg font-black text-slate-800 focus:outline-none focus:border-b-2 border-blue-500 bg-transparent"
                               value={item.activityName}
-                              onChange={(e) => updateScheduleItem(item.id, { activityName: e.target.value })}
+                              onChange={(val) => updateScheduleItem(item.id, { activityName: val })}
                             />
                             <div className="flex items-center gap-2 mt-1">
                               <input type="time" className="text-sm font-bold text-slate-400 bg-transparent" value={item.startTime} onChange={(e) => updateScheduleItem(item.id, { startTime: e.target.value })} />
