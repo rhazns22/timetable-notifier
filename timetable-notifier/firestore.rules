@@ -1,0 +1,63 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: /teachers/{teacherId}
+// Collection: /schedules/{scheduleId}
+// Collection: /schedules/{scheduleId}/items/{itemId}
+// Collection: /display_settings/{teacherId}
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isScheduleOwner(scheduleId) {
+      return isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/schedules/$(scheduleId)).data.teacherId;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /teachers/{teacherId} {
+      allow read: if true; // Publicly readable for student view
+      allow write: if isOwner(teacherId);
+    }
+
+    match /schedules/{scheduleId} {
+      allow read: if true; // Publicly readable for student view
+      allow create: if isAuthenticated() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isOwner(resource.data.teacherId);
+    }
+
+    match /schedules/{scheduleId}/items/{itemId} {
+      allow read: if true; // Publicly readable for student view
+      allow write: if isScheduleOwner(scheduleId);
+    }
+
+    match /display_settings/{teacherId} {
+      allow read: if true; // Publicly readable for student view
+      allow write: if isOwner(teacherId);
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

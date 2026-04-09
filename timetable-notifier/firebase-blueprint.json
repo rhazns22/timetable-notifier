@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Teacher": {
+      "title": "Teacher Profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "className": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "createdAt"]
+    },
+    "Schedule": {
+      "title": "Daily Schedule",
+      "type": "object",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "date": { "type": "string", "description": "YYYY-MM-DD" },
+        "title": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["teacherId", "date", "isActive"]
+    },
+    "ScheduleItem": {
+      "title": "Schedule Item",
+      "type": "object",
+      "properties": {
+        "order": { "type": "number" },
+        "activityName": { "type": "string" },
+        "startTime": { "type": "string", "format": "time" },
+        "endTime": { "type": "string", "format": "time" },
+        "activityType": { "type": "string", "enum": ["morning", "class", "lunch", "break", "afterschool"] },
+        "voiceText": { "type": "string" },
+        "useVoice": { "type": "boolean" },
+        "color": { "type": "string" }
+      },
+      "required": ["order", "activityName", "startTime", "endTime", "activityType"]
+    },
+    "DisplaySettings": {
+      "title": "Display Settings",
+      "type": "object",
+      "properties": {
+        "showCountdown": { "type": "boolean" },
+        "showNextActivity": { "type": "boolean" },
+        "fullscreenMode": { "type": "boolean" },
+        "theme": { "type": "string" },
+        "voiceRate": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/teachers/{teacherId}": { "schema": "Teacher", "description": "Teacher profile" },
+    "/schedules/{scheduleId}": { "schema": "Schedule", "description": "Daily schedule metadata" },
+    "/schedules/{scheduleId}/items/{itemId}": { "schema": "ScheduleItem", "description": "Items within a schedule" },
+    "/display_settings/{teacherId}": { "schema": "DisplaySettings", "description": "Teacher's display preferences" }
+  }
+}

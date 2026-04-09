@@ -1,0 +1,5 @@
+{
+  "name": "시간표 알림이 (Timetable Notifier)",
+  "description": "초등학교 학생들을 위한 실시간 수업 시간표 안내 및 음성 알림 서비스",
+  "requestFramePermissions": []
+}
