@@ -133,6 +133,19 @@ export default function App() {
 
   // --- Auth & Initial Load ---
   useEffect(() => {
+    // Test Firestore connection
+    const testConnection = async () => {
+      try {
+        const { getDocFromServer } = await import('firebase/firestore');
+        await getDocFromServer(doc(db, 'test', 'connection'));
+      } catch (error: any) {
+        if (error.message?.includes('the client is offline')) {
+          console.error("Firebase configuration might be incorrect or API is blocked.");
+        }
+      }
+    };
+    testConnection();
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setIsAuthReady(true);
@@ -325,8 +338,17 @@ export default function App() {
         createdAt: serverTimestamp()
       }, { merge: true });
       setView('teacher');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed', error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        setToastMessage('로그인 창이 닫혔습니다. 다시 시도해 주세요.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // Ignore multiple popup requests
+      } else if (error.message.includes('requests-to-this-api-identitytoolkit')) {
+        setToastMessage('인증 서비스 설정 중입니다. 잠시 후 다시 시도해 주세요.');
+      } else {
+        setToastMessage('로그인에 실패했습니다. 관리자에게 문의하세요.');
+      }
     }
   };
 
