@@ -56,6 +56,8 @@ import {
   ChevronLeft,
   Monitor,
   Check,
+  Menu,
+  X,
   User as UserIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -159,6 +161,7 @@ export default function App() {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [showList, setShowList] = useState(false);
   const [showTeacherIdModal, setShowTeacherIdModal] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [inputTeacherId, setInputTeacherId] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -474,13 +477,13 @@ export default function App() {
           <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-blue-100">
             <Clock className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-5xl font-black text-slate-900 mb-6 tracking-tight">스마트 시간표 알림이</h1>
-          <p className="text-xl text-slate-500 mb-12 leading-relaxed">선생님은 시간표를 관리하고, 학생들은 대형 화면으로 수업 흐름을 확인합니다. 실시간 동기화와 음성 안내로 수업 효율을 높이세요.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={handleLogin} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 mb-6 tracking-tight">스마트 시간표 알림이</h1>
+          <p className="text-base sm:text-xl text-slate-500 mb-12 leading-relaxed">선생님은 시간표를 관리하고, 학생들은 대형 화면으로 수업 흐름을 확인합니다. 실시간 동기화와 음성 안내로 수업 효율을 높이세요.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md mx-auto">
+            <button onClick={handleLogin} className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-base lg:text-lg shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
               <UserIcon className="w-5 h-5" /> 선생님으로 시작하기
             </button>
-            <button onClick={() => setShowTeacherIdModal(true)} className="px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+            <button onClick={() => setShowTeacherIdModal(true)} className="w-full sm:w-auto px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold text-base lg:text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
               <Monitor className="w-5 h-5" /> 학생용 화면 보기
             </button>
           </div>
@@ -505,7 +508,7 @@ export default function App() {
                 <p className="text-slate-500 mb-6 text-sm">공유받은 선생님의 고유 ID 또는 <b>전체 링크</b>를 그대로 붙여넣으셔도 됩니다.</p>
                 <input 
                   autoFocus
-                  className="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:outline-none font-bold text-lg mb-6"
+                  className="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:outline-none font-bold text-base lg:text-lg mb-6"
                   placeholder="ID 또는 전체 링크를 입력하세요"
                   value={inputTeacherId}
                   onChange={(e) => {
@@ -544,8 +547,25 @@ export default function App() {
   if (view === 'teacher') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row overflow-hidden font-sans">
+        {/* Mobile Header */}
+        <div className="lg:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><Clock className="w-5 h-5 text-white" /></div>
+            <h1 className="font-black text-lg text-slate-900">교사 대시보드</h1>
+          </div>
+          <button 
+            onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+            className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+          >
+            {showMobileSidebar ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
         {/* Sidebar */}
-        <aside className="w-full lg:w-80 bg-white border-r border-slate-200 flex flex-col h-screen">
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0",
+          showMobileSidebar ? "translate-x-0" : "-translate-x-full"
+        )}>
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button onClick={() => setView('landing')} className="p-2 -ml-2 text-slate-400 hover:text-blue-600 transition-colors" title="홈으로">
@@ -606,17 +626,30 @@ export default function App() {
           </div>
         </aside>
 
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {showMobileSidebar && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileSidebar(false)}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Main Content */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="p-6 bg-white border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-2xl font-black text-slate-900">{format(currentDate, 'yyyy년 MM월 dd일')} 시간표</h2>
-            <div className="flex gap-2">
+          <header className="p-4 lg:p-6 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <h2 className="text-xl lg:text-2xl font-black text-slate-900">{format(currentDate, 'yyyy년 MM월 dd일')} 시간표</h2>
+            <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
               <button 
                 onClick={() => {
                   const url = `${window.location.origin}${window.location.pathname}?teacherId=${user?.uid}`;
                   copyToClipboard(url, '학생용 링크가 복사되었습니다!');
                 }}
-                className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-200"
+                className="flex-1 sm:flex-none px-3 lg:px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs lg:text-sm flex items-center justify-center gap-2 hover:bg-slate-200"
               >
                 <Copy className="w-4 h-4" /> 링크 복사
               </button>
@@ -625,11 +658,11 @@ export default function App() {
                   setTeacherId(user?.uid || null);
                   setView('student');
                 }}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-black transition-all"
+                className="flex-1 sm:flex-none px-3 lg:px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs lg:text-sm flex items-center justify-center gap-2 hover:bg-black transition-all"
               >
                 <Monitor className="w-4 h-4" /> 학생 화면
               </button>
-              <button onClick={addScheduleItem} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-100 hover:bg-blue-700">
+              <button onClick={addScheduleItem} className="flex-1 sm:flex-none px-3 lg:px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs lg:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-100 hover:bg-blue-700">
                 <Plus className="w-4 h-4" /> 활동 추가
               </button>
             </div>
@@ -647,29 +680,29 @@ export default function App() {
               <div className="max-w-4xl mx-auto space-y-4">
                 <AnimatePresence mode="popLayout">
                   {scheduleItems.map((item) => (
-                    <motion.div key={item.id} layout initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm group">
-                      <div className="flex flex-wrap items-center gap-6">
-                        <div className="flex items-center gap-4 flex-1 min-w-[300px]">
-                          <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border", ACTIVITY_COLORS[item.activityType])}>
-                            {(() => { const Icon = ACTIVITY_ICONS[item.activityType]; return <Icon className="w-6 h-6" />; })()}
+                    <motion.div key={item.id} layout initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white p-4 lg:p-6 rounded-3xl border border-slate-100 shadow-sm group">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                          <div className={cn("w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl flex items-center justify-center border shrink-0", ACTIVITY_COLORS[item.activityType])}>
+                            {(() => { const Icon = ACTIVITY_ICONS[item.activityType]; return <Icon className="w-5 h-5 lg:w-6 lg:h-6" />; })()}
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <DebouncedInput 
-                              className="w-full text-lg font-black text-slate-800 focus:outline-none focus:border-b-2 border-blue-500 bg-transparent"
+                              className="w-full text-base lg:text-lg font-black text-slate-800 focus:outline-none focus:border-b-2 border-blue-500 bg-transparent truncate"
                               value={item.activityName}
                               onChange={(val) => updateScheduleItem(item.id, { activityName: val })}
                             />
                             <div className="flex items-center gap-2 mt-1">
-                              <input type="time" className="text-sm font-bold text-slate-400 bg-transparent" value={item.startTime} onChange={(e) => updateScheduleItem(item.id, { startTime: e.target.value })} />
+                              <input type="time" className="text-xs lg:text-sm font-bold text-slate-400 bg-transparent" value={item.startTime} onChange={(e) => updateScheduleItem(item.id, { startTime: e.target.value })} />
                               <span className="text-slate-300">-</span>
-                              <input type="time" className="text-sm font-bold text-slate-400 bg-transparent" value={item.endTime} onChange={(e) => updateScheduleItem(item.id, { endTime: e.target.value })} />
+                              <input type="time" className="text-xs lg:text-sm font-bold text-slate-400 bg-transparent" value={item.endTime} onChange={(e) => updateScheduleItem(item.id, { endTime: e.target.value })} />
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between sm:justify-end gap-2 border-t sm:border-none pt-3 sm:pt-0">
                           <select 
-                            className="bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-600 p-2"
+                            className="bg-slate-50 border-none rounded-xl text-[10px] lg:text-sm font-bold text-slate-600 p-2"
                             value={item.activityType}
                             onChange={(e) => updateScheduleItem(item.id, { activityType: e.target.value as ActivityType })}
                           >
@@ -680,16 +713,20 @@ export default function App() {
                             <option value="afterschool">방과후</option>
                           </select>
                           
-                          <button 
-                            onClick={() => updateScheduleItem(item.id, { useVoice: !item.useVoice })}
-                            className={cn("p-3 rounded-xl transition-all", item.useVoice ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-300")}
-                          >
-                            <Volume2 className="w-5 h-5" />
-                          </button>
-
-                          <button onClick={() => deleteScheduleItem(item.id)} className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={() => updateScheduleItem(item.id, { useVoice: !item.useVoice })}
+                              className={cn("p-2 lg:p-3 rounded-xl transition-all", item.useVoice ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-300")}
+                            >
+                              <Volume2 className="w-4 h-4 lg:w-5 lg:h-5" />
+                            </button>
+                            <button 
+                              onClick={() => deleteScheduleItem(item.id)}
+                              className="p-2 lg:p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            >
+                              <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -724,26 +761,26 @@ export default function App() {
         {/* Student View: Minimal, High Contrast, Large Fonts */}
         <main className="flex-1 flex flex-col p-8 lg:p-16 relative">
           {/* Top Bar */}
-          <div className="flex justify-between items-start mb-16">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-200">
-                <Clock className="w-8 h-8 text-white" />
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 lg:mb-16 gap-6">
+            <div className="flex items-center gap-4 lg:gap-6">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-600 rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-200 shrink-0">
+                <Clock className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
               </div>
-              <div>
-                <h1 className="text-6xl font-black text-slate-900 tracking-tighter">{format(currentTime, 'HH:mm:ss')}</h1>
-                <p className="text-slate-400 font-black uppercase tracking-widest text-sm mt-1">{format(currentTime, 'yyyy.MM.dd EEEE')}</p>
+              <div className="min-w-0">
+                <h1 className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter truncate">{format(currentTime, 'HH:mm:ss')}</h1>
+                <p className="text-slate-400 font-black uppercase tracking-widest text-[10px] lg:text-sm mt-1 truncate">{format(currentTime, 'yyyy.MM.dd EEEE')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-row items-center gap-2 lg:gap-4 w-full md:w-auto">
               <button 
                 onClick={() => setShowList(!showList)}
-                className="bg-white px-8 py-4 rounded-3xl border border-slate-200 shadow-sm font-black text-slate-700 uppercase tracking-widest text-xs hover:bg-slate-50 transition-all flex items-center gap-2"
+                className="flex-1 md:flex-none bg-white px-4 lg:px-8 py-2 lg:py-4 rounded-2xl lg:rounded-3xl border border-slate-200 shadow-sm font-black text-slate-700 uppercase tracking-widest text-[10px] lg:text-xs hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
               >
-                <Calendar className="w-4 h-4" /> {showList ? '현재 활동 보기' : '전체 시간표 보기'}
+                <Calendar className="w-3 h-3 lg:w-4 lg:h-4" /> {showList ? '현재 활동' : '전체 시간표'}
               </button>
-              <div className="bg-slate-50 px-8 py-4 rounded-3xl border border-slate-100 flex items-center gap-4">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                <span className="font-black text-slate-700 uppercase tracking-widest text-xs">실시간 연결됨</span>
+              <div className="flex-1 md:flex-none bg-slate-50 px-4 lg:px-8 py-2 lg:py-4 rounded-2xl lg:rounded-3xl border border-slate-100 flex items-center justify-center gap-2 lg:gap-4">
+                <div className="w-2 h-2 lg:w-3 lg:h-3 bg-green-500 rounded-full animate-pulse shrink-0" />
+                <span className="font-black text-slate-700 uppercase tracking-widest text-[10px] lg:text-xs truncate">실시간</span>
               </div>
             </div>
           </div>
@@ -759,38 +796,40 @@ export default function App() {
                   exit={{ opacity: 0, y: -20 }}
                   className="w-full max-w-4xl space-y-4"
                 >
-                  <h2 className="text-4xl font-black text-slate-900 mb-8">오늘의 전체 시간표</h2>
-                  {scheduleItems.map((item) => (
-                    <div 
-                      key={item.id}
-                      className={cn(
-                        "p-8 rounded-[32px] border-4 flex items-center justify-between transition-all",
-                        currentActivity?.id === item.id 
-                          ? "bg-blue-600 border-blue-400 text-white shadow-2xl scale-105 z-10" 
-                          : "bg-white border-slate-100 text-slate-800"
-                      )}
-                    >
-                      <div className="flex items-center gap-8">
-                        <div className={cn(
-                          "w-16 h-16 rounded-2xl flex items-center justify-center",
-                          currentActivity?.id === item.id ? "bg-white/20" : ACTIVITY_COLORS[item.activityType]
-                        )}>
-                          {(() => { const Icon = ACTIVITY_ICONS[item.activityType]; return <Icon className="w-8 h-8" />; })()}
+                  <h2 className="text-2xl lg:text-4xl font-black text-slate-900 mb-4 lg:mb-8">오늘의 전체 시간표</h2>
+                  <div className="space-y-3 lg:space-y-4">
+                    {scheduleItems.map((item) => (
+                      <div 
+                        key={item.id}
+                        className={cn(
+                          "p-4 lg:p-8 rounded-2xl lg:rounded-[32px] border-2 lg:border-4 flex flex-col sm:flex-row items-start sm:items-center justify-between transition-all gap-4",
+                          currentActivity?.id === item.id 
+                            ? "bg-blue-600 border-blue-400 text-white shadow-2xl scale-[1.02] lg:scale-105 z-10" 
+                            : "bg-white border-slate-100 text-slate-800"
+                        )}
+                      >
+                        <div className="flex items-center gap-4 lg:gap-8">
+                          <div className={cn(
+                            "w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center",
+                            currentActivity?.id === item.id ? "bg-white/20" : ACTIVITY_COLORS[item.activityType]
+                          )}>
+                            {(() => { const Icon = ACTIVITY_ICONS[item.activityType]; return <Icon className="w-6 h-6 lg:w-8 lg:h-8" />; })()}
+                          </div>
+                          <div className="text-left">
+                            <p className={cn("text-[10px] lg:text-sm font-black uppercase tracking-widest mb-0.5 lg:mb-1", currentActivity?.id === item.id ? "text-blue-100" : "text-slate-400")}>
+                              {item.order + 1}교시
+                            </p>
+                            <h3 className="text-xl lg:text-3xl font-black">{item.activityName}</h3>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className={cn("text-sm font-black uppercase tracking-widest mb-1", currentActivity?.id === item.id ? "text-blue-100" : "text-slate-400")}>
-                            {item.order + 1}교시
+                        <div className="w-full sm:w-auto text-left sm:text-right border-t sm:border-none pt-2 sm:pt-0 border-white/10">
+                          <p className={cn("text-lg lg:text-2xl font-mono font-black", currentActivity?.id === item.id ? "text-white" : "text-slate-400")}>
+                            {item.startTime} - {item.endTime}
                           </p>
-                          <h3 className="text-3xl font-black">{item.activityName}</h3>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={cn("text-2xl font-mono font-black", currentActivity?.id === item.id ? "text-white" : "text-slate-400")}>
-                          {item.startTime} - {item.endTime}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </motion.div>
               ) : currentActivity ? (
                 <motion.div key={currentActivity.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="w-full">
@@ -799,7 +838,7 @@ export default function App() {
                     {currentActivity.activityType === 'morning' ? '아침 활동' : currentActivity.activityType === 'lunch' ? '점심 시간' : currentActivity.activityType === 'break' ? '쉬는 시간' : '수업 진행 중'}
                   </div>
 
-                  <h2 className="text-[12rem] lg:text-[18rem] font-black text-slate-900 leading-none tracking-tighter mb-12">
+                  <h2 className="text-4xl sm:text-7xl lg:text-[18rem] font-black text-slate-900 leading-none tracking-tighter mb-8 lg:mb-12 break-words px-4 overflow-hidden">
                     {currentActivity.activityName}
                   </h2>
 
